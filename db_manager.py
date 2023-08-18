@@ -6,12 +6,13 @@ from db_config import DB_CONFIG
 
 BASE_URL = "https://api.hh.ru/"
 HEADERS = {
-    "sergeymalyaroff": "MyApp/1.0 (sergeymalyaroff@yandex.ru)"
+    "User-Agent": "CompanyVacancyFetcher/1.0 (sergeymalyaroff@yandex.ru)"
 }
 
 
 def get_employer_id(company_name):
     response = requests.get(BASE_URL + "employers", params={"text": company_name}, headers=HEADERS)
+
     data = response.json()
     if 'items' in data and data['items']:
         return data['items'][0]['id']
@@ -21,7 +22,7 @@ def get_employer_id(company_name):
 
 
 def get_vacancies_for_employer(employer_id):
-    response = requests.get(BASE_URL + f"employers/{employer_id}/vacancies", headers=HEADERS)
+    response = requests.get(BASE_URL + "vacancies", params={"employer_id": employer_id}, headers=HEADERS)
     data = response.json()
 
     if 'items' in data:
@@ -45,11 +46,6 @@ def insert_into_db(company, vacancies):
         employer_id = cur.fetchone()[0]
 
         for vacancy in vacancies:
-
-
-            if vacancies:  # Проверка, что список вакансий не пустой
-                insert_into_db(company, vacancies)
-
             cur.execute(
                 """
                 INSERT INTO vacancies (employer_id, name, salary_from, salary_to, link)
